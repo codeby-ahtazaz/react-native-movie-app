@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Cast from '../components/cast';
 import MovieList from '../components/movieList';
 import Loading from '../components/loading';
+import { fetchMovieCredits, fetchMovieDetails, fetchSimilarMovies, image500 } from '../api/moviedb';
 
 
 const ios = Platform.OS == 'ios';
@@ -20,15 +21,36 @@ const MovieScreen = () => {
   const { params: item } = useRoute();
   const navigation = useNavigation();
   const [isFavourite, toggleFavourite] = useState(true);
-  const [cast, setCast] = useState([1, 2, 3, 4, 5, 6]);
-  const [similarMovies, setSimilarMovies] = useState([1, 2, 3, 4, 5, 6]);
+  const [cast, setCast] = useState([]);
+  const [movie, setMovie] = useState({});
+  const [similarMovies, setSimilarMovies] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const movieName = "Children.only expected to receive a single"
+  const getMovieDetail = async (id) => {
+    const data = await fetchMovieDetails(id);
+    if (data) setMovie(data)
+    setLoading(false)
+  }
+
+  const getMovieCredits = async (id) => {
+    const data = await fetchMovieCredits(id);
+    if (data) setCast(data.cast)
+    setLoading(false)
+  }
+
+  const getSimilarMovies = async (id) => {
+    const data = await fetchSimilarMovies(id);
+    if (data) setSimilarMovies(data.results)
+    setLoading(false)
+  }
 
   useEffect(() => {
-    // call  movie detail api
+    setLoading(true);
+    getMovieDetail(item.id)
+    getMovieCredits(item.id)
+    getSimilarMovies(item.id)
   }, [item]);
+
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: 20 }}
@@ -54,7 +76,7 @@ const MovieScreen = () => {
           ) : (
             <View>
               <Image
-                source={require('../../assets/splash-icon.png')}
+                source={{ uri: image500(item.poster_path) || fallbackMoviePoster }}
                 style={{
                   width: width,
                   height: height * 0.55
@@ -75,21 +97,31 @@ const MovieScreen = () => {
 
       <View style={{ marginTop: -(height * 0.09) }} className="space-y-3">
         {/* title */}
-        <Text className="text-white font-bold text-3xl tracking-wider text-center">{movieName}</Text>
+        <Text className="text-white font-bold text-3xl tracking-wider text-center">{item?.title}</Text>
         {/* status, release, runtime */}
         <Text className="text-neutral-400 font-semibold text-base text-center">
-          Released - 2020 - 180 min
+          {movie?.status} - {movie?.release_date?.split('-')[0]} - {movie?.runtime} min
         </Text>
+
         {/* genres */}
-        <Text className="text-neutral-400 font-semibold text-base  text-center">
-          Action - Thrill - Comedy
-        </Text>
+        <View className=" justify-center flex-row mx-4 space-x-2 mb-2">
+          {
+            movie?.genres?.map((item, index) => {
+              let showDot = index + 1 != movie.genres.length;
+
+              return (
+                <Text key={index} className="text-neutral-400 font-semibold text-base  text-center">
+                  {item?.name} {showDot ? "-" : null}
+                </Text>
+              )
+            })
+          }
+        </View>
+
+
         {/* description */}
         <Text className="text-neutral-400 tracking-wide mx-4">
-          A readonly array of colors that represent stops in the gradient. At least two colors are required (for a single-color background, use the style.backgroundColor prop on a View component).
-          For TypeScript to know the provided array has 2 or more values, it should be provided "inline", A readonly array of colors that represent stops in the gradient. At least two colors are required (for a single-color background, use the style.backgroundColor prop on a View component).
-          For TypeScript to know the provided array has 2 or more values, it should be provided "inline" oA readonly array of colors that represent stops in the gradient. At least two colors are required (for a single-color background, use the style.backgroundColor prop on a View component).
-          For TypeScript to know the provided array has 2 or more values, it should be provided "inline" o
+          {movie?.overview}
         </Text>
       </View>
 

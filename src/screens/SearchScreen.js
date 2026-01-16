@@ -1,9 +1,11 @@
 import { View, Text, Dimensions, TextInput, TouchableOpacity, ScrollView, TouchableWithoutFeedback, Image } from 'react-native'
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { XMarkIcon } from 'react-native-heroicons/outline';
 import { useNavigation } from '@react-navigation/native';
 import Loading from '../components/loading';
+import { fallbackMoviePoster, image185, searchMovies } from '../api/moviedb';
+import { debounce } from 'lodash';
 
 const { width, height } = Dimensions.get("window");
 const movieName = "Children.only expected to receive a single"
@@ -13,10 +15,42 @@ const SearchScreen = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    const handleSearch = (value) => {
+        if (value && value.length > 2) {
+            setLoading(true)
+            searchMovies(
+                {
+                    query: value,
+                    include_adult: 'false',
+                    language: 'en-US',
+                    page: '1'
+                })
+                .then(data => {
+                    setLoading(false)
+                    if (data && data.results) setResults(data.results)
+                    
+                })
+                .catch(err => {
+                    setLoading(false)
+                    console.log("Search error:", err);
+                })
+
+
+        }
+        else {
+            setLoading(false)
+            setResults([])
+        }
+
+    }
+
+    const handleTextDebounce = useCallback(debounce(handleSearch, 400), []);
+
     return (
         <SafeAreaView className=" flex-1 bg-neutral-800">
             <View className="flex-row mx-4 mb-3 items-center justify-between border border-neutral-500 rounded-full ">
                 <TextInput
+                    onChangeText={handleTextDebounce}
                     placeholder='Search Movie'
                     placeholderTextColor={'lightgray'}
                     className="pb-1 pl-6 flex-1 text-base font-semibold text-white tracking-wide" />
@@ -51,7 +85,8 @@ const SearchScreen = () => {
                                                 <View className="space-y-2 mb-4">
                                                     <Image
                                                         className="rounded-3xl bg-red-400"
-                                                        source={require('../../assets/splash-icon.png')}
+                                                        source={{ uri: image185(item?.poster_path) || fallbackMoviePoster }}
+                                                        // source={require('../../assets/splash-icon.png')}
                                                         style={{
                                                             width: width * 0.44,
                                                             height: height * 0.3
@@ -59,7 +94,7 @@ const SearchScreen = () => {
                                                     />
                                                     <Text className=" text-neutral-400 ml-1">
                                                         {
-                                                            movieName.length > 22 ? movieName.slice(0, 22) + '...' : movieName
+                                                            item.original_title.length > 22 ? item.original_title.slice(0, 22) + '...' : item.original_title
                                                         }
                                                     </Text>
                                                 </View>
@@ -73,6 +108,7 @@ const SearchScreen = () => {
                     ) : (
                         <View className="flex-1 justify-center items-center ">
                             <Image
+                                // source={{ uri: image185(item?.poster_path) || fallbackMoviePoster }}
                                 className="h-96 w-96"
                                 source={require('../../assets/splash-icon.png')}
                             // style={{

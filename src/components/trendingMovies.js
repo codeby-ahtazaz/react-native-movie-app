@@ -3,6 +3,7 @@ import * as React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import Animated, { Extrapolation, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { fallbackMoviePoster, image500 } from '../api/moviedb';
 
 const { width, height } = Dimensions.get("window");
 
@@ -90,7 +91,7 @@ const MovieCard = ({ item, index, handleClick, scrollX }) => {
     <Animated.View style={[{ width: width }, rnAnimatedStyle]} className="items-center justify-center">
       <TouchableWithoutFeedback onPress={() => handleClick(item)}>
         <Image
-          source={require('../../assets/splash-icon.png')}
+          source={{ uri: image500(item.poster_path) || fallbackMoviePoster }}
           style={{
             width: width * 0.6,
             height: height * 0.4

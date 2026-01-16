@@ -2,6 +2,7 @@ import { View, Text, Image, Dimensions, TouchableOpacity, TouchableWithoutFeedba
 import React from 'react'
 import { styles } from '../theme'
 import { useNavigation } from '@react-navigation/native';
+import { fallbackMoviePoster, image185 } from '../api/moviedb';
 
 const { width, height } = Dimensions.get("window");
 
@@ -39,16 +40,17 @@ const MovieList = ({ title, data, hideSeeAll }) => {
                             <TouchableWithoutFeedback key={index} onPress={() => handleClick(item)}>
                                 <View className="space-y-1 mr-4 mt-2" >
                                     <Image
-                                        source={require('../../assets/splash-icon.png')}
+                                        source={{ uri: image185(item.poster_path) || fallbackMoviePoster }}
+                                        // source={require('../../assets/splash-icon.png')}
                                         style={{
                                             width: width * 0.33,
                                             height: height * 0.22
                                         }}
                                         className="rounded-3xl bg-red-400"
                                     />
-                                    <Text className="text-white text-neutral-300 ml-1">
+                                    <Text className="text-white text-neutral-300 ml-1 mt-2">
                                         {
-                                            movieName.length > 14 ? movieName.slice(0, 14) + '...' : movieName
+                                            item.title.length > 14 ? item.title.slice(0, 14) + '...' : item.title
                                         }
                                     </Text>
                                 </View>

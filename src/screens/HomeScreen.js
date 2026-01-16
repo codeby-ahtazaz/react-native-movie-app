@@ -1,6 +1,6 @@
 import { View, Text, Platform, TouchableOpacity, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { Bars3CenterLeftIcon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import { styles } from '../theme';
@@ -9,6 +9,7 @@ import { useState } from 'react';
 import MovieList from '../components/movieList';
 import { useNavigation } from '@react-navigation/native';
 import Loading from '../components/loading';
+import { fetchTopRatedMovies, fetchTrendingMovies, fetchUpcomingMovies } from '../api/moviedb';
 
 
 const ios = Platform.OS == 'ios';
@@ -16,10 +17,37 @@ const ios = Platform.OS == 'ios';
 function HomeScreen() {
   const navigation = useNavigation();
 
-  const [trending, setTrending] = useState([0, 1, 2, 3, 4, 5]);
-  const [upcoming, setUpcoming] = useState([0, 1, 2, 3, 4, 5]);
-  const [topRated, setTopRated] = useState([0, 1, 2, 3, 4, 5]);
-  const [loading, setLoading] = useState(false);
+  const [trending, setTrending] = useState([]);
+  const [upcoming, setUpcoming] = useState([]);
+  const [topRated, setTopRated] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getTrendingMovies();
+    getUpcomingMovies();
+    getTopRatedMovies();
+  }, [])
+
+  const getTrendingMovies = async () => {
+    const data = await fetchTrendingMovies();
+    // console.log('got trending movies--->', data)
+    if (data && data.results) setTrending(data.results)
+    setLoading(false)
+  }
+
+  const getUpcomingMovies = async () => {
+    const data = await fetchUpcomingMovies();
+    // console.log('got upcoming movies--->', data)
+    if (data && data.results) setUpcoming(data.results)
+    setLoading(false)
+  }
+
+  const getTopRatedMovies = async () => {
+    const data = await fetchTopRatedMovies();
+    // console.log('got top rated movies--->', data)
+    if (data && data.results) setTopRated(data.results)
+    setLoading(false)
+  }
 
   return (
     <View className="flex-1 bg-neutral-800">
@@ -48,13 +76,16 @@ function HomeScreen() {
             contentContainerStyle={{ paddingHorizontal: 0 }}
           >
             {/* Trending movies carousel */}
-            <TrendingMovies data={trending} />
+            {trending.length > 0 && <TrendingMovies data={trending} />}
+
 
             {/* upcoming movies  */}
-            <MovieList title="Upcoming" data={upcoming} />
+            {upcoming.length > 0 && <MovieList title="Upcoming" data={upcoming} />}
 
-            {/* upcoming movies  */}
-            <MovieList title="Top Rated" data={topRated} />
+
+            {/* top-rated movies  */}
+            {topRated.length > 0 && <MovieList title="Top Rated" data={topRated} />}
+
           </ScrollView>
         )
       }
