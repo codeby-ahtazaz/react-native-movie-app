@@ -35,9 +35,13 @@ function TrendingMovies({ data }) {
           data={data}
           renderItem={({ item, index }) => <MovieCard item={item} index={index} handleClick={handleClick} scrollX={scrollX} />}
           showsHorizontalScrollIndicator={false}
-          // contentContainerStyle={{ paddingHorizontal: 16 }}
           pagingEnabled
           onScroll={onScrollHandler}
+
+          // 🔥 ADD THESE FIXES
+          removeClippedSubviews={false}
+          contentContainerStyle={{ paddingHorizontal: 0 }}
+          style={{ overflow: 'visible' }}
         />
 
       </View>
